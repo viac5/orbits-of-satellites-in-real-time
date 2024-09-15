@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Информация о спутнике</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+        header {
+            width: 100%;
+            background: #17212b;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2em;
+            color: #d1e8e2;
+        }
+        form {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #2b3a4a;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        form select, form button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        form select {
+            background-color: #3a4e5c;
+            color: #fff;
+        }
+        form button {
+            background-color: #007acc;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        form button:hover {
+            background-color: #005ea6;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1200px;
+            width: 100%;
+        }
+        .text, .image {
+            padding: 20px;
+            background-color: #2b3a4a;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            box-sizing: border-box;
+            width: 100%;
+        }
+        .text {
+            max-width: 800px;
+        }
+        .text h1 {
+            margin-top: 0;
+            color: #d1e8e2;
+        }
+        .text ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .text li {
+            padding: 5px 0;
+            border-bottom: 1px solid #3a4e5c;
+        }
+        .image {
+            max-width: 1000px;
+            position: relative;
+        }
+        .image h2 {
+            margin-top: 0;
+            text-align: center;
+            color: #d1e8e2;
+        }
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+        .legend, .time {
+            background: #2b3a4a;
+            border-radius: 10px;
+            padding: 10px;
+            margin: 20px 0;
+            width: 200px;
+            text-align: left;
+        }
+        .legend {
+            margin-top: 10px;
+        }
+        .legend div {
+            display: flex;
+            align-items: center;
+        }
+        .legend span {
+            margin-left: 10px;
+        }
+        .legend .line {
+            width: 30px;
+            height: 4px;
+            display: inline-block;
+        }
+        .line-blue {
+            background-color: blue;
+        }
+        .line-red {
+            background-color: red;
+        }
+        .time {
+            font-size: 1.2em;
+            color: #d1e8e2;
+        }
+        .sidebar {
+            position: absolute;
+            top: 20px;
+            right: -240px; /* Shifted to the right side */
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Информация о спутнике</h1>
+    </header>
+    <form action="/satellite" method="post">
+        <select name="name">
+            {% for name in names %}
+                <option value="{{ name }}">{{ name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Показать TLE</button>
+    </form>
+    <div class="container">
+        <div class="text">
+            <h1>{{ data[0] }}</h1>
+            <ul>
+                <li>Номер строки: {{ stringNumber1 }}</li>
+                <li>Номер спутника: {{ satelliteNumber1 }}</li>
+                <li>Классификация: {{ classification }}</li>
+                <li>Год запуска: {{ internDesignation_Year }}</li>
+                <li>Номер запуска: {{ internDesignation_Number }}</li>
+                <li>Часть запуска: {{ internDesignation_Part }}</li>
+                <li>Год эпохи: {{ yearOfEpoch }}</li>
+                <li>Время эпохи: {{ timeOfEpoch }}</li>
+                <li>Первая производная от среднего движения делённая на два: {{firstDerivative}}</li>
+                <li>Вторая производная от среднего движения делённая на шесть: {{secondDerivative}}</li>
+                <li>Коэффициент торможения B*: {{ dragCoefficient }}</li>
+                <li>Tипы эфемерид: {{ typesOfEphemeris }}</li>
+                <li>Номер элемента: {{ itemNumber }}</li>
+                <li>Контрольная сумма: {{ checksum1 }}</li>
+            </ul>
+            <ul>
+                <li>Номер строки: {{ stringNumber2 }}</li>
+                <li>Номер спутника: {{ satelliteNumber2 }}</li>
+                <li>Наклон: {{ slant }}</li>
+                <li>Долгота восходящего узла: {{longitudeOfAscendingNode }}</li>
+                <li>Эксцентриситет: {{ eccentricity }}</li>
+                <li>Аргумент перицентра: {{ pericenterArgument }}</li>
+                <li>Средняя аномалия: {{ averageAnomaly }}</li>
+                <li>Частота обращения: {{ frequencyOfTreatment }}</li>
+                <li>Номер витка на момент эпохи: {{turnNumber}}</li>
+                <li>Контрольная сумма: {{ checksum2 }}</li>
+            </ul>
+        </div>
+        <div class="image">
+            <h2>Траектория {{ data[0] }}</h2>
+            <div id="map"></div>
+            <div class="sidebar">
+                <div class="time" id="current-time"></div>
+                <div class="legend">
+                    <div><div class="line line-blue"></div><span> - Прошлая траектория</span></div>
+                    <div><div class="line line-red"></div><span> - Текущая траектория</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+    const satelliteName = '{{ data[0] }}';  // Получение имени спутника из шаблона
+    const trajectoryPoints = [];  // Массив для хранения точек траектории
+    const map = L.map('map', {
+        maxBounds: [[-90, -180], [90, 180]],  // Ограничение карты мировыми координатами
+        maxBoundsViscosity: 1.0
+    }).setView([0, 0], 2);  // Установка начального вида карты
+
+    // Добавление слоя карты OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 10,  // Ограничение максимального приближения
+        minZoom: 1,  // Ограничение максимального удаления
+    }).addTo(map);
+
+    // URL изображения иконки спутника
+    const satelliteIconUrl = '/static/satellite.png';
+
+    // Создание иконки спутника
+    const satelliteIcon = L.icon({
+        iconUrl: satelliteIconUrl,
+        iconSize: [32, 32],  // Размер иконки
+        iconAnchor: [16, 16],  // Точка привязки иконки (центр)
+    });
+
+    // Использование пользовательской иконки для маркера
+    const satelliteMarker = L.marker([0, 0], { icon: satelliteIcon }).addTo(map);
+    let trajectoryLine = L.polyline([], { color: 'red', smoothFactor: 0 }).addTo(map);  // Линия для отображения траектории
+
+    // Функция для получения траектории спутника за последние три часа
+    function fetchPastTrajectory() {
+        fetch('/past_trajectory', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: satelliteName })  // Отправка имени спутника на сервер
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(data => {
+            const pastTrajectoryPoints = data.trajectory.latitudes.map((lat, index) => [lat, data.trajectory.longitudes[index]]);
+            drawTrajectory(pastTrajectoryPoints);  // Отрисовка траектории
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // Функция для отрисовки траектории на карте
+    function drawTrajectory(trajectoryPoints) {
+        let currentSegment = [];
+
+        trajectoryPoints.forEach(([lat, lng], i) => {
+            if (i > 0 && Math.abs(lng - trajectoryPoints[i - 1][1]) > 180) {
+                // Отрисовка текущего сегмента и начало нового
+                L.polyline(currentSegment, { color: 'blue', smoothFactor: 0 }).addTo(map);
+                currentSegment = [];
+            }
+            currentSegment.push([lat, lng]);
+        });
+
+        // Отрисовка последнего сегмента
+        if (currentSegment.length > 0) {
+            L.polyline(currentSegment, { color: 'blue', smoothFactor: 0 }).addTo(map);
+        }
+    }
+
+    // Функция для обновления текущей позиции спутника
+    function updatePosition() {
+        fetch('/current_position', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: satelliteName })  // Отправка имени спутника на сервер
+        })
+        .then(response => response.json())
+        .then(data => {
+            const latitude = data.latitude;
+            const longitude = data.longitude;
+
+            // Обновление положения спутника на карте
+            satelliteMarker.setLatLng([latitude, longitude]);
+
+            // Добавление текущего положения в траекторию
+            trajectoryPoints.push([latitude, longitude]);
+            trajectoryLine.setLatLngs(trajectoryPoints);  // Обновляем линию траектории
+
+            console.log(`Latitude: ${latitude}, Longitude: ${longitude}`);
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // Обновляем позицию спутника каждую секунду
+    setInterval(updatePosition, 1000);
+
+    // Обновляем позицию спутника сразу при загрузке страницы
+    updatePosition();
+    fetchPastTrajectory();
+
+    // Функция для обновления текущего времени
+    function updateTime() {
+        const now = new Date();
+        const formattedTime = now.toLocaleString('ru-RU', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
+        document.getElementById('current-time').textContent = `Текущее время: ${formattedTime}`;
+    }
+
+    // Обновляем текущее время каждую секунду
+    setInterval(updateTime, 1000);
+    updateTime();  // Начальный вызов
+</script>
+
+</body>
+</html>
